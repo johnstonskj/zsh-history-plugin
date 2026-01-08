@@ -1,11 +1,8 @@
 # -*- mode: sh; eval: (sh-set-shell "zsh") -*-
 #
 # Plugin Name: history
+# Description: Zsh plugin to configure core history functionality.
 # Repository: https://github.com/johnstonskj/zsh-history-plugin
-#
-# Description:
-#
-#   Zsh plugin to configure core history functionality.
 #
 # Public variables:
 #
@@ -13,7 +10,9 @@
 #   * `_ALIASES`; a list of all aliases defined by the plugin.
 #   * `_FUNCTIONS`; a list of all functions defined by the plugin.
 #   * `_PLUGIN_DIR`; the directory the plugin is sourced from.
-# * `HISTORY_EXAMPLE`; if set it does something magical.
+# * `HISTFILE`; path to the history file.
+# * `HISTSIZE`; maximum number of lines kept in memory.
+# * `SAVEHIST`; maximum number of lines saved to `HISTFILE`.
 #
 
 ############################################################################
