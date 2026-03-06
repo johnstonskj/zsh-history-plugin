@@ -6,77 +6,22 @@
 #
 # Public variables:
 #
-# * `HISTORY`; plugin-defined global associative array with the following keys:
-#   * `_ALIASES`; a list of all aliases defined by the plugin.
-#   * `_FUNCTIONS`; a list of all functions defined by the plugin.
-#   * `_PLUGIN_DIR`; the directory the plugin is sourced from.
-# * `HISTFILE`; path to the history file.
-# * `HISTSIZE`; maximum number of lines kept in memory.
-# * `SAVEHIST`; maximum number of lines saved to `HISTFILE`.
-#
 
 ############################################################################
-# Standard Setup Behavior
-############################################################################
-
-# See https://wiki.zshell.dev/community/zsh_plugin_standard#zero-handling
-0="${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}"
-0="${${(M)0:#/*}:-$PWD/$0}"
-
-# See https://wiki.zshell.dev/community/zsh_plugin_standard#standard-plugins-hash
-declare -gA HISTORY
-HISTORY[_PLUGIN_DIR]="${0:h}"
-HISTORY[_ALIASES]=""
-HISTORY[_FUNCTIONS]=""
-
-############################################################################
-# Internal Support Functions
-############################################################################
-
+# @section Lifecycle
+# @description Plugin lifecycle functions.
 #
-# This function will add to the `HISTORY[_FUNCTIONS]` list which is
-# used at unload time to `unfunction` plugin-defined functions.
-#
-# See https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function
-# See https://wiki.zshell.dev/community/zsh_plugin_standard#the-proposed-function-name-prefixes
-#
-.history_remember_fn() {
-    builtin emulate -L zsh
 
-    local fn_name="${1}"
-    if [[ -z "${HISTORY[_FUNCTIONS]}" ]]; then
-        HISTORY[_FUNCTIONS]="${fn_name}"
-    elif [[ ",${HISTORY[_FUNCTIONS]}," != *",${fn_name},"* ]]; then
-        HISTORY[_FUNCTIONS]="${HISTORY[_FUNCTIONS]},${fn_name}"
-    fi
-}
-.history_remember_fn .history_remember_fn
-
-.history_define_alias() {
-    local alias_name="${1}"
-    local alias_value="${2}"
-
-    alias ${alias_name}=${alias_value}
-
-    if [[ -z "${HISTORY[_ALIASES]}" ]]; then
-        HISTORY[_ALIASES]="${alias_name}"
-    elif [[ ",${HISTORY[_ALIASES]}," != *",${alias_name},"* ]]; then
-        HISTORY[_ALIASES]="${HISTORY[_ALIASES]},${alias_name}"
-    fi
-}
-.history_remember_fn .history_remember_alias
-
-#
-# This function does the initialization of variables in the global variable
-# `HISTORY`. It also adds to `path` and `fpath` as necessary.
-#
 history_plugin_init() {
     builtin emulate -L zsh
-    builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
+    @zplugins_envvar_save history HISTFILE
     export HISTFILE="${ZSH_STATE_HOME}/history"
 
+    @zplugins_envvar_save history HISTSIZE
     export HISTSIZE=10000           # Maximum lines kept in memory
+
+    @zplugins_envvar_save history SAVEHIST
     export SAVEHIST=100000          # Maximum lines saved to ${HISTFILE}
 
     setopt EXTENDED_HISTORY         # Write the history file in the ':start:elapsed;command' format.
@@ -91,42 +36,20 @@ history_plugin_init() {
     setopt APPEND_HISTORY           # append to history file
     setopt HIST_NO_STORE            # Don't store history commands
 }
-.history_remember_fn history_plugin_init
 
-############################################################################
-# Plugin Unload Function
-############################################################################
-
-# See https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function
 history_plugin_unload() {
     builtin emulate -L zsh
 
-    # Remove all remembered functions.
-    local plugin_fns
-    IFS=',' read -r -A plugin_fns <<< "${HISTORY[_FUNCTIONS]}"
-    local fn
-    for fn in ${plugin_fns[@]}; do
-        whence -w "${fn}" &> /dev/null && unfunction "${fn}"
-    done
-    
-    # Remove all remembered aliases.
-    local aliases
-    IFS=',' read -r -A aliases <<< "${HISTORY[_ALIASES]}"
-    local alias
-    for alias in ${aliases[@]}; do
-        unalias "${alias}"
-    done
-
-    # Remove the global data variable (after above!).
-    unset HISTORY
-
-    # Remove this function last.
-    unfunction history_plugin_unload
+    @zplugins_envvar_restore history HISTFILE
+    @zplugins_envvar_restore history HISTSIZE
+    @zplugins_envvar_restore history SAVEHIST
 }
 
+
 ############################################################################
-# Public Functions
-############################################################################
+# @section Public
+# @description History utility functions.
+#
 
 function he() {
     # check if we passed any parameters
@@ -138,17 +61,9 @@ function he() {
         history 1 | egrep --color=auto "$@"
     fi
 }
-.history_remember_fn he
+@zplugins_remember_fn history he
 
 function hf() {
     eval $( ([ -n "${ZSH_NAME}" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
 }
-.history_remember_fn hf
-
-############################################################################
-# Initialize Plugin
-############################################################################
-
-history_plugin_init
-
-true
+@zplugins_remember_fn history hf
