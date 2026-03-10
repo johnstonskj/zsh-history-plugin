@@ -1,8 +1,10 @@
 # -*- mode: sh; eval: (sh-set-shell "zsh") -*-
 #
-# Plugin Name: history
-# Description: Zsh plugin to configure core history functionality.
-# Repository: https://github.com/johnstonskj/zsh-history-plugin
+# @name: history
+# @brief: Configure Zsh core history functionality.
+# @repository: https://github.com/johnstonskj/zsh-history-plugin
+# @version: 0.1.1
+# @license: MIT AND Apache-2.0
 #
 # Public variables:
 #
