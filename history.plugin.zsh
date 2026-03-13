@@ -18,13 +18,13 @@ history_plugin_init() {
     builtin emulate -L zsh
 
     @zplugins_envvar_save history HISTFILE
-    export HISTFILE="${ZSH_STATE_HOME}/history"
+    typeset -g HISTFILE="${ZSH_STATE_HOME}/history"
 
     @zplugins_envvar_save history HISTSIZE
-    export HISTSIZE=10000           # Maximum lines kept in memory
+    typeset -g HISTSIZE=10000           # Maximum lines kept in memory
 
     @zplugins_envvar_save history SAVEHIST
-    export SAVEHIST=100000          # Maximum lines saved to ${HISTFILE}
+    typeset -g SAVEHIST=100000          # Maximum lines saved to ${HISTFILE}
 
     setopt EXTENDED_HISTORY         # Write the history file in the ':start:elapsed;command' format.
     setopt SHARE_HISTORY            # Share history between all sessions.
